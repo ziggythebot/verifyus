@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerifyUS - Zero-Knowledge US Work Authorization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        h1 {
+            font-size: 64px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .tagline {
+            font-size: 24px;
+            color: #a0a0a0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .problem {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            padding: 60px;
+            border-radius: 20px;
+            margin-bottom: 60px;
+        }
+
+        .problem h2 {
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 56px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: rgba(255,255,255,0.9);
+            margin-top: 10px;
+        }
+
+        .solution {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px;
+            border-radius: 20px;
+            margin-bottom: 60px;
+        }
+
+        .solution h2 {
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .feature p {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .how-it-works {
+            margin-bottom: 60px;
+        }
+
+        .how-it-works h2 {
+            font-size: 36px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .step {
+            background: rgba(255,255,255,0.05);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .step-number {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .step h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .step p {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+
+        .roi {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            padding: 60px;
+            border-radius: 20px;
+            margin-bottom: 60px;
+        }
+
+        .roi h2 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .roi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .roi-item {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+        }
+
+        .roi-item h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .roi-item ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .roi-item li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .roi-item li:last-child {
+            border-bottom: none;
+        }
+
+        .roi-highlight {
+            font-size: 48px;
+            font-weight: 800;
+            text-align: center;
+            margin-top: 30px;
+            padding: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+        }
+
+        .tech-stack {
+            margin-bottom: 60px;
+        }
+
+        .tech-stack h2 {
+            font-size: 36px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .tech-item {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .tech-item h4 {
+            font-size: 18px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .tech-item p {
+            font-size: 14px;
+            color: #a0a0a0;
+        }
+
+        .cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 60px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .cta h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .cta p {
+            font-size: 20px;
+            margin-bottom: 40px;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 18px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #667eea;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 2px solid #fff;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 40px;
+            }
+
+            .tagline {
+                font-size: 18px;
+            }
+
+            .roi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>VerifyUS</h1>
+        <p class="tagline">Zero-knowledge proof-based US work authorization verification. Block fraudulent job applicants before they reach your ATS.</p>
+    </header>
+
+    <div class="problem">
+        <h2>🚨 The $50K Problem</h2>
+        <p style="font-size: 20px; margin-bottom: 30px;">
+            US recruitment agencies are hemorrhaging money to identity fraud and foreign applicants flooding systems with visa sponsorship hopes.
+        </p>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number">$50K+</div>
+                <div class="stat-label">Average loss per fraudulent hire (2025)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">70%</div>
+                <div class="stat-label">Fraudulent applications need blocking</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">79%</div>
+                <div class="stat-label">ATS use AI filtering (easily bypassed)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">$100K</div>
+                <div class="stat-label">New H-1B visa fee (Sept 2025)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="solution">
+        <h2>✨ The Solution</h2>
+        <p style="font-size: 20px; margin-bottom: 30px;">
+            Privacy-preserving, cryptographically-verified US work authorization. Applicants prove residency once, apply everywhere. Bots can't fake it.
+        </p>
+
+        <div class="features">
+            <div class="feature">
+                <h3>🔐 Zero-Knowledge Proofs</h3>
+                <p>Prove US work authorization without revealing passport, SSN, or ID. Raw documents never leave applicant's device.</p>
+            </div>
+            <div class="feature">
+                <h3>🤖 Bot-Resistant</h3>
+                <p>Cryptographic proofs can't be faked by bots or competitors. Deepfake detection built-in.</p>
+            </div>
+            <div class="feature">
+                <h3>♻️ Reusable Proofs</h3>
+                <p>Verify once, apply to 100 jobs. No repeated document uploads. Better UX for applicants.</p>
+            </div>
+            <div class="feature">
+                <h3>⚡ Pre-ATS Filtering</h3>
+                <p>Block unverified applicants before they hit your ATS. 70% reduction in fraudulent applications.</p>
+            </div>
+            <div class="feature">
+                <h3>🔗 ATS Integration</h3>
+                <p>Works with Greenhouse, Lever, Workday. Simple API, 1-day integration.</p>
+            </div>
+            <div class="feature">
+                <h3>📊 Fraud Analytics</h3>
+                <p>Track verification rates, fraud attempts blocked, time saved. ROI dashboard included.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="how-it-works">
+        <h2>How It Works</h2>
+
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Applicant Verifies</h3>
+                <p>Before applying, candidate proves US work auth via passport, state ID, or bank account using ZKPass SDK.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Proof Generated</h3>
+                <p>Zero-knowledge proof created on applicant's device. No document upload, no privacy invasion.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Application Submitted</h3>
+                <p>Cryptographic proof attached to application. ATS validates proof automatically.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>Fraud Blocked</h3>
+                <p>Unverified applicants rejected pre-ATS. Your recruiters only see verified candidates.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="roi">
+        <h2>ROI: $44K-$89K Saved Per 1000 Applications</h2>
+
+        <div class="roi-grid">
+            <div class="roi-item">
+                <h3>❌ Current State (Manual)</h3>
+                <ul>
+                    <li>200-300 foreign applicants (30% of volume)</li>
+                    <li>50-100 bot applications</li>
+                    <li>Manual screening: $1,250-3,000</li>
+                    <li>Fraudulent hires: $50K-100K loss</li>
+                    <li><strong>Total cost: $51K-103K</strong></li>
+                </ul>
+            </div>
+            <div class="roi-item">
+                <h3>✅ With VerifyUS</h3>
+                <ul>
+                    <li>700 verified, 300 auto-rejected</li>
+                    <li>Manual screening reduced 70%</li>
+                    <li>Verification cost: $1,400-3,500</li>
+                    <li>Fraud reduction: 90%+ = $5K-10K loss</li>
+                    <li><strong>Total cost: $6.4K-13.5K</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="roi-highlight">
+            Net Savings: $44,500 - $89,500
+        </div>
+    </div>
+
+    <div class="tech-stack">
+        <h2>Technical Architecture</h2>
+
+        <div class="tech-grid">
+            <div class="tech-item">
+                <h4>ZKPass</h4>
+                <p>Zero-knowledge proof generation</p>
+            </div>
+            <div class="tech-item">
+                <h4>zkTLS</h4>
+                <p>Verify Web2 data sources</p>
+            </div>
+            <div class="tech-item">
+                <h4>React SDK</h4>
+                <p>Embeddable verification widget</p>
+            </div>
+            <div class="tech-item">
+                <h4>REST API</h4>
+                <p>ATS integration layer</p>
+            </div>
+            <div class="tech-item">
+                <h4>PostgreSQL</h4>
+                <p>Encrypted proof metadata</p>
+            </div>
+            <div class="tech-item">
+                <h4>Greenhouse</h4>
+                <p>Native ATS integration</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta">
+        <h2>Ready to Stop Losing $50K Per Fraudulent Hire?</h2>
+        <p>Pilot with 3 recruitment agencies. 60-day free trial. Prove ROI before you pay.</p>
+
+        <div class="cta-buttons">
+            <a href="mailto:bird@ghostclaw.io?subject=VerifyUS Pilot Interest" class="btn btn-primary">Start Pilot</a>
+            <a href="research.md" class="btn btn-secondary">Read Full Research</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
