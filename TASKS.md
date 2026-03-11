@@ -2,7 +2,7 @@
 
 ## Setup & Infrastructure
 - [x] Initialize Next.js project with TypeScript
-- [ ] Set up PostgreSQL database schema
+- [x] Set up PostgreSQL database schema
 - [ ] Create Express API server
 - [ ] Configure environment variables and secrets
 - [ ] Set up Git repository structure
@@ -43,11 +43,18 @@
 - [ ] Build proof reuse detection
 
 ## Database
-- [ ] Create applicants table
-- [ ] Create proofs table with encryption
-- [ ] Create verifications audit log table
-- [ ] Create employers table
-- [ ] Add database indexes for performance
+- [x] Create applicants table
+- [x] Create proofs table with encryption
+- [x] Create verifications audit log table
+- [x] Create employers table
+- [x] Add database indexes for performance
+- [x] Create fraud_alerts table
+- [x] Create webhook_events table
+- [x] Create audit_logs table
+- [x] Add database triggers (auto-update timestamps, expiration)
+- [x] Create database views (active_proofs, stats)
+- [x] Add utility functions (get_active_proof, is_duplicate_proof)
+- [x] Create setup scripts and documentation
 
 ## Greenhouse Integration
 - [ ] Set up Greenhouse API credentials
