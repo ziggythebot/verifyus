@@ -1,7 +1,7 @@
 # VerifyUS - MVP Build Tasks
 
 ## Setup & Infrastructure
-- [ ] Initialize Next.js project with TypeScript
+- [x] Initialize Next.js project with TypeScript
 - [ ] Set up PostgreSQL database schema
 - [ ] Create Express API server
 - [ ] Configure environment variables and secrets
