@@ -3,7 +3,7 @@
 ## Setup & Infrastructure
 - [x] Initialize Next.js project with TypeScript
 - [x] Set up PostgreSQL database schema
-- [ ] Create Express API server
+- [x] Create Express API server
 - [ ] Configure environment variables and secrets
 - [ ] Set up Git repository structure
 
