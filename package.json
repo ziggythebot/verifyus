@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "tsx scripts/test-env.ts",
     "test:env": "tsx scripts/test-env.ts",
+    "test:zkpass": "tsx scripts/test-zkpass.ts",
     "db:setup": "cd db && ./setup.sh",
     "db:migrate": "psql $DATABASE_URL -f db/schema.sql",
     "api:dev": "tsx --watch api/server.ts",
@@ -16,6 +17,7 @@
     "api:start": "node dist/api/server.js"
   },
   "dependencies": {
+    "@zkpass/transgate-js-sdk": "^0.4.5",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.6",
     "dotenv": "^16.4.5",

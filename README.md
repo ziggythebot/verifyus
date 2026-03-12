@@ -17,6 +17,7 @@ This system provides:
 - **Database**: PostgreSQL
 - **Storage**: AWS S3 for document storage
 - **Verification**: IDology integration
+- **Zero-Knowledge Proofs**: zkPass TransGate SDK for privacy-preserving verification
 
 ## Project Structure
 
@@ -76,6 +77,7 @@ npm run api:dev
 - [API Implementation Guide](./API_IMPLEMENTATION.md)
 - [Environment Setup](./ENV_SETUP.md)
 - [Product Specification](./product-spec.md)
+- [zkPass Integration Guide](./docs/zkpass-integration.md)
 
 ## Development
 

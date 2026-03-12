@@ -7,6 +7,7 @@ import path from 'path';
 import verifyRoutes from './routes/verify';
 import webhookRoutes from './routes/webhooks';
 import analyticsRoutes from './routes/analytics';
+import zkpassRoutes from './routes/zkpass';
 import { errorHandler } from './middleware/errorHandler';
 import { rateLimiter } from './middleware/rateLimiter';
 import { validateEnv } from '../lib/env';
@@ -48,6 +49,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/v1/verify', verifyRoutes);
 app.use('/api/v1/webhooks', webhookRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/zkpass', zkpassRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
