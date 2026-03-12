@@ -1,29 +1,48 @@
 'use client';
 
-import ZkPassVerification from '../components/ZkPassVerification';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import ApplicantVerificationFlow from '../components/ApplicantVerificationFlow';
 
-export default function VerifyPage() {
+function VerifyContent() {
+  const searchParams = useSearchParams();
+  const jobTitle = searchParams.get('job');
+  const companyName = searchParams.get('company');
+  const redirectUrl = searchParams.get('redirect');
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
             US Residency Verification
           </h1>
           <p className="mt-2 text-sm text-gray-600">
-            Verify your US residency using zero-knowledge proofs
+            Complete your verification in 4 simple steps
           </p>
         </div>
 
-        <ZkPassVerification
-          onVerificationComplete={(result) => {
-            console.log('Verification completed:', result);
-          }}
-          onVerificationError={(error) => {
-            console.error('Verification error:', error);
+        <ApplicantVerificationFlow
+          jobTitle={jobTitle || undefined}
+          companyName={companyName || undefined}
+          redirectUrl={redirectUrl || undefined}
+          onComplete={(verificationId) => {
+            console.log('Verification completed:', verificationId);
           }}
         />
       </div>
     </div>
+  );
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600">Loading verification flow...</div>
+      </div>
+    }>
+      <VerifyContent />
+    </Suspense>
   );
 }
