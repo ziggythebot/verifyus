@@ -19,7 +19,7 @@
 - [x] Build applicant verification flow UI
 - [x] Implement proof submission to API
 - [x] Add loading states and error handling
-- [ ] Make widget embeddable (script tag)
+- [x] Make widget embeddable (script tag)
 
 ## Frontend - Applicant Dashboard
 - [ ] Create applicant authentication system

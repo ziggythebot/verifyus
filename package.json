@@ -10,6 +10,8 @@
     "test": "tsx scripts/test-env.ts",
     "test:env": "tsx scripts/test-env.ts",
     "test:zkpass": "tsx scripts/test-zkpass.ts",
+    "test:proof": "tsx tests/proof-validation.test.ts",
+    "test:all": "npm run test:env && npm run test:zkpass && npm run test:proof",
     "db:setup": "cd db && ./setup.sh",
     "db:migrate": "psql $DATABASE_URL -f db/schema.sql",
     "api:dev": "tsx --watch api/server.ts",
