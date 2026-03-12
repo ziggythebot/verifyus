@@ -12,7 +12,7 @@
 - [x] Create schema for US residency verification
 - [x] Install and configure zkPass TransGate SDK
 - [x] Build proof generation component
-- [ ] Test proof validation with sample data
+- [x] Test proof validation with sample data
 
 ## Frontend - Verification Widget
 - [ ] Create Next.js verification widget component

@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Enticeable Verification System
+
+An identity verification system for creator platforms that allows users to verify themselves once and use that verification across multiple platforms.
+
+## Overview
+
+This system provides:
+- **User Verification**: ID verification, selfie capture, and liveness detection
+- **Multi-Platform Support**: Reusable verification across multiple creator platforms
+- **Secure API**: RESTful API for platform integration
+- **Admin Dashboard**: Next.js frontend for managing verifications
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, TypeScript, TailwindCSS
+- **Backend**: Express.js API server
+- **Database**: PostgreSQL
+- **Storage**: AWS S3 for document storage
+- **Verification**: IDology integration
+
+## Project Structure
+
+```
+├── api/              # Express.js API server
+├── app/              # Next.js frontend
+├── db/               # Database schema and migrations
+├── lib/              # Shared utilities and types
+├── docs/             # Documentation
+└── scripts/          # Build and deployment scripts
+```
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+
+- PostgreSQL 14+
+- AWS account (for S3)
+- IDology API credentials
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd enticeable-verification
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your credentials
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Initialize the database:
+```bash
+npm run db:migrate
+```
 
-## Learn More
+5. Start development servers:
+```bash
+# Frontend (Next.js)
+npm run dev
 
-To learn more about Next.js, take a look at the following resources:
+# API server (Express)
+npm run api:dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [API Implementation Guide](./API_IMPLEMENTATION.md)
+- [Environment Setup](./ENV_SETUP.md)
+- [Product Specification](./product-spec.md)
 
-## Deploy on Vercel
+## Development
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Running Tests
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test
+```
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+## Deployment
+
+See deployment documentation in `/docs` for platform-specific deployment guides.
+
+## License
+
+Proprietary - All rights reserved
