@@ -29,15 +29,49 @@ This guide covers registering a zkPass DevHub account and creating a project for
 
 ## Step 3: Add Schema
 
+**IMPORTANT**: Before creating the schema in DevHub, review the detailed schema specification in `docs/us-residency-schema.md` and the configuration blueprint in `docs/zkpass-schema-config.json`.
+
+### Schema Overview
+
+The US Work Authorization Verification schema supports **4 verification methods** (OR logic):
+1. **US Passport** (recommended for MVP)
+2. **State ID / Driver's License**
+3. **SSN + Address Verification**
+4. **US Bank Account** (90+ days old)
+
+### Creating the Schema (MVP - Passport Only)
+
+For the MVP, start with **US Passport verification only**:
+
 1. In your project dashboard, click "Add Schema"
-2. Choose the schema category appropriate for your use case:
-   - For identity verification: Identity/KYC schemas
-   - For social media verification: Social Media schemas
-   - For custom data: Custom schema templates
-3. Configure schema assertions according to your requirements
-4. Review carefully - **schemas cannot be modified after creation** (only deleted)
-5. Click "Submit" to create the schema
-6. Save the generated **Schema ID**
+2. Select schema category: **Identity/KYC**
+3. Schema name: `US Work Authorization Verification`
+4. Schema description: `Verify US work authorization without revealing identity details`
+5. Configure **Assertion Group 1: US Passport**:
+   - Data source type: `zkTLS`
+   - Data source endpoint: USCIS Passport Database (or test endpoint)
+   - Add assertions:
+     - `document_type` equals `"US_PASSPORT"` (required)
+     - `citizenship` equals `"USA"` (required)
+     - `document_status` equals `"VALID"` (required)
+     - `expiration_date` greater than `current_date` (required)
+     - `holder_age` greater than or equal to `16` (required)
+6. Configure **Selective Disclosure**:
+   - Revealed fields: NONE
+   - Hidden fields: full_name, passport_number, date_of_birth, place_of_birth, photograph
+7. Set **Proof TTL**: 90 days
+8. Review carefully - **schemas cannot be modified after creation** (only deleted)
+9. Click "Submit" to create the schema
+10. **IMPORTANT**: Save the generated **Schema ID**
+
+### Adding Additional Methods (Post-MVP)
+
+After validating the passport method works, you can create additional schemas or extend the existing one to support:
+- State ID / Driver's License (see `docs/zkpass-schema-config.json` for assertions)
+- SSN + Address Verification (see `docs/zkpass-schema-config.json` for assertions)
+- Bank Account Verification (see `docs/zkpass-schema-config.json` for assertions)
+
+Refer to `docs/us-residency-schema.md` for complete specification of each method.
 
 ## Step 4: Configure Environment Variables
 
@@ -49,8 +83,14 @@ ZKPASS_APP_ID=your-app-id-here
 ZKPASS_SCHEMA_ID=your-schema-id-here
 ```
 
-## Integration Resources
+## Schema Documentation
 
+**Internal Documentation** (created for this project):
+- [`docs/us-residency-schema.md`](./us-residency-schema.md) - Complete schema specification with all 4 verification methods
+- [`docs/zkpass-schema-config.json`](./zkpass-schema-config.json) - Machine-readable schema blueprint
+- [`lib/types/zkproof.ts`](../lib/types/zkproof.ts) - TypeScript type definitions for proof validation
+
+**External Resources**:
 - [zkPass Documentation](https://docs.zkpass.org/)
 - [Quick Start Guide](https://docs.zkpass.org/developer-guides/js-sdk/quick-start)
 - [TransGate JS SDK](https://github.com/zkPassOfficial/Transgate-JS-SDK)

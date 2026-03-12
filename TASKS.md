@@ -15,7 +15,7 @@
 - [x] Test proof validation with sample data
 
 ## Frontend - Verification Widget
-- [ ] Create Next.js verification widget component
+- [x] Create Next.js verification widget component
 - [ ] Build applicant verification flow UI
 - [ ] Implement proof submission to API
 - [ ] Add loading states and error handling
