@@ -30,7 +30,7 @@
 
 ## Frontend - Employer Dashboard
 - [x] Create employer authentication system
-- [ ] Build API key generation interface
+- [x] Build API key generation interface
 - [ ] Display verification statistics
 - [ ] Show verified vs unverified applicants list
 - [ ] Add analytics dashboard

@@ -3,6 +3,8 @@
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import ApplicantVerificationFlow from '../components/ApplicantVerificationFlow';
+import ErrorBoundary from '../components/ErrorBoundary';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 function VerifyContent() {
   const searchParams = useSearchParams();
@@ -37,12 +39,16 @@ function VerifyContent() {
 
 export default function VerifyPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading verification flow...</div>
-      </div>
-    }>
-      <VerifyContent />
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <LoadingSpinner size="lg" text="Loading verification flow..." />
+          </div>
+        }
+      >
+        <VerifyContent />
+      </Suspense>
+    </ErrorBoundary>
   );
 }

@@ -4,12 +4,13 @@
  * React Hook for zkPass TransGate Integration
  *
  * This hook provides client-side functionality for launching zkPass verification
- * and handling the proof generation process.
+ * and handling the proof generation process with enhanced error handling.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import TransgateConnect from '@zkpass/transgate-js-sdk';
 import type { Result } from '@zkpass/transgate-js-sdk/lib/types';
+import { getUserFriendlyErrorMessage } from '../utils/errorHandling';
 
 export interface UseZkPassOptions {
   appId: string;
@@ -25,6 +26,7 @@ export interface UseZkPassReturn {
   result: Result | null;
   launch: (walletAddress?: string) => Promise<void>;
   reset: () => void;
+  retryCount: number;
 }
 
 /**
@@ -32,7 +34,7 @@ export interface UseZkPassReturn {
  *
  * @example
  * ```tsx
- * const { launch, isLoading, result, error } = useZkPass({
+ * const { launch, isLoading, result, error, retryCount } = useZkPass({
  *   appId: 'your-app-id',
  *   schemaId: 'your-schema-id',
  *   onSuccess: (result) => console.log('Verification successful:', result),
@@ -53,12 +55,31 @@ export function useZkPass({
   const [isTransgateAvailable, setIsTransgateAvailable] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [client] = useState(() => new TransgateConnect(appId));
 
   // Check if TransGate is available
-  useState(() => {
-    client.isTransgateAvailable().then(setIsTransgateAvailable);
-  });
+  useEffect(() => {
+    let mounted = true;
+
+    client
+      .isTransgateAvailable()
+      .then((available) => {
+        if (mounted) {
+          setIsTransgateAvailable(available);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to check TransGate availability:', err);
+        if (mounted) {
+          setIsTransgateAvailable(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [client]);
 
   const launch = useCallback(
     async (walletAddress?: string) => {
@@ -67,19 +88,52 @@ export function useZkPass({
       setResult(null);
 
       try {
+        // Validate inputs
+        if (!appId || !schemaId) {
+          throw new Error('zkPass configuration is incomplete. Please check your setup.');
+        }
+
+        if (!isTransgateAvailable) {
+          throw new Error(
+            'TransGate extension is not available. Please install the zkPass TransGate extension and try again.'
+          );
+        }
+
         // Launch TransGate verification
         const verificationResult = await client.launch(schemaId, walletAddress);
 
+        if (!verificationResult) {
+          throw new Error('Verification failed: No result received from TransGate.');
+        }
+
         const resultData = verificationResult as Result;
         setResult(resultData);
+        setRetryCount(0);
 
         // Call success callback
         if (onSuccess) {
           onSuccess(resultData);
         }
       } catch (err) {
-        const error = err instanceof Error ? err : new Error('Unknown error occurred');
+        // Enhanced error handling
+        let error: Error;
+
+        if (err instanceof Error) {
+          error = err;
+        } else if (typeof err === 'string') {
+          error = new Error(err);
+        } else {
+          error = new Error('Unknown error occurred during verification');
+        }
+
+        // Add user-friendly message if not already present
+        const userMessage = getUserFriendlyErrorMessage(error);
+        if (userMessage !== error.message) {
+          (error as any).userMessage = userMessage;
+        }
+
         setError(error);
+        setRetryCount((prev) => prev + 1);
 
         // Call error callback
         if (onError) {
@@ -89,13 +143,14 @@ export function useZkPass({
         setIsLoading(false);
       }
     },
-    [client, schemaId, onSuccess, onError]
+    [client, schemaId, appId, isTransgateAvailable, onSuccess, onError]
   );
 
   const reset = useCallback(() => {
     setIsLoading(false);
     setError(null);
     setResult(null);
+    setRetryCount(0);
   }, []);
 
   return {
@@ -105,5 +160,6 @@ export function useZkPass({
     result,
     launch,
     reset,
+    retryCount,
   };
 }

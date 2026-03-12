@@ -23,21 +23,56 @@ export default function ZkPassVerification({
 }: ZkPassVerificationProps) {
   const [config, setConfig] = useState<{ appId: string; schemaId: string } | null>(null);
   const [isLoadingConfig, setIsLoadingConfig] = useState(true);
+  const [configError, setConfigError] = useState<string | null>(null);
   const [verificationResult, setVerificationResult] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   // Fetch zkPass configuration from API
   useEffect(() => {
-    fetch('/api/v1/zkpass/session')
-      .then((res) => res.json())
-      .then((data) => {
-        setConfig(data);
-        setIsLoadingConfig(false);
-      })
-      .catch((error) => {
+    let mounted = true;
+
+    const loadConfig = async () => {
+      try {
+        setIsLoadingConfig(true);
+        setConfigError(null);
+
+        const response = await fetch('/api/v1/zkpass/session');
+
+        if (!response.ok) {
+          throw new Error(`Failed to load configuration: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.appId || !data.schemaId) {
+          throw new Error('Invalid configuration received from server');
+        }
+
+        if (mounted) {
+          setConfig(data);
+          setIsLoadingConfig(false);
+        }
+      } catch (error) {
         console.error('Failed to load zkPass config:', error);
-        setIsLoadingConfig(false);
-      });
-  }, []);
+        if (mounted) {
+          setConfigError(
+            error instanceof Error
+              ? error.message
+              : 'Failed to load verification configuration'
+          );
+          setIsLoadingConfig(false);
+        }
+      }
+    };
+
+    loadConfig();
+
+    return () => {
+      mounted = false;
+    };
+  }, [retryAttempt]);
 
   const {
     isLoading,
@@ -45,6 +80,7 @@ export default function ZkPassVerification({
     error,
     result,
     launch,
+    retryCount,
   } = useZkPass({
     appId: config?.appId || '',
     schemaId: config?.schemaId || '',
@@ -53,6 +89,9 @@ export default function ZkPassVerification({
 
       // Submit proof to backend for verification
       try {
+        setIsSubmitting(true);
+        setSubmitError(null);
+
         const response = await fetch('/api/v1/zkpass/verify', {
           method: 'POST',
           headers: {
@@ -65,14 +104,33 @@ export default function ZkPassVerification({
           }),
         });
 
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.error || errorData.message || `Server error: ${response.statusText}`
+          );
+        }
+
         const verificationData = await response.json();
         setVerificationResult(verificationData);
+        setIsSubmitting(false);
 
         if (verificationData.valid && onVerificationComplete) {
           onVerificationComplete(result);
+        } else if (!verificationData.valid) {
+          const error = new Error('Proof verification failed on server');
+          setSubmitError(error.message);
+          if (onVerificationError) {
+            onVerificationError(error);
+          }
         }
       } catch (error) {
         console.error('Backend verification failed:', error);
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to verify proof with server';
+        setSubmitError(errorMessage);
+        setIsSubmitting(false);
+
         if (onVerificationError && error instanceof Error) {
           onVerificationError(error);
         }
@@ -95,21 +153,32 @@ export default function ZkPassVerification({
     await launch(walletAddress);
   };
 
+  const handleRetryConfig = () => {
+    setRetryAttempt((prev) => prev + 1);
+  };
+
   if (isLoadingConfig) {
     return (
-      <div className="flex items-center justify-center p-6">
+      <div className="flex flex-col items-center justify-center p-6 space-y-3">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
         <div className="text-gray-600">Loading verification system...</div>
       </div>
     );
   }
 
-  if (!config) {
+  if (!config || configError) {
     return (
-      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-        <p className="text-red-800">Failed to load zkPass configuration.</p>
-        <p className="text-red-600 text-sm mt-2">
-          Please check your ZKPASS_APP_ID and ZKPASS_SCHEMA_ID environment variables.
+      <div className="p-6 bg-red-50 border border-red-200 rounded-lg space-y-3">
+        <p className="text-red-800 font-medium">Failed to load zkPass configuration</p>
+        <p className="text-red-600 text-sm">
+          {configError || 'Please check your ZKPASS_APP_ID and ZKPASS_SCHEMA_ID environment variables.'}
         </p>
+        <button
+          onClick={handleRetryConfig}
+          className="px-4 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -135,21 +204,56 @@ export default function ZkPassVerification({
           {/* Verify Button */}
           <button
             onClick={handleVerify}
-            disabled={isLoading || !isTransgateAvailable}
-            className={`w-full px-6 py-3 rounded-lg font-medium transition-colors ${
-              isLoading || !isTransgateAvailable
+            disabled={isLoading || isSubmitting || !isTransgateAvailable}
+            className={`w-full px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
+              isLoading || isSubmitting || !isTransgateAvailable
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
           >
-            {isLoading ? 'Verifying...' : 'Verify US Residency'}
+            {(isLoading || isSubmitting) && (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+            )}
+            <span>
+              {isLoading
+                ? 'Generating Proof...'
+                : isSubmitting
+                ? 'Verifying with Server...'
+                : 'Verify US Residency'}
+            </span>
           </button>
 
+          {retryCount > 0 && !isLoading && error && (
+            <p className="text-xs text-gray-500 text-center">
+              Retry attempt {retryCount}
+            </p>
+          )}
+
           {/* Error Display */}
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800 font-medium">Verification Failed</p>
-              <p className="text-red-600 text-sm mt-1">{error.message}</p>
+          {(error || submitError) && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg space-y-3">
+              <div>
+                <p className="text-red-800 font-medium">Verification Failed</p>
+                <p className="text-red-600 text-sm mt-1">
+                  {(error as any)?.userMessage || error?.message || submitError}
+                </p>
+              </div>
+
+              {/* Error-specific help */}
+              {error && !isTransgateAvailable && (
+                <div className="text-xs text-red-700 bg-red-100 p-2 rounded">
+                  Make sure the zkPass TransGate extension is installed and enabled in your browser.
+                </div>
+              )}
+
+              {/* Retry button */}
+              <button
+                onClick={handleVerify}
+                disabled={isLoading || isSubmitting}
+                className="w-full px-4 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors disabled:bg-gray-400"
+              >
+                Try Again
+              </button>
             </div>
           )}
 

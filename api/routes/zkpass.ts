@@ -40,12 +40,22 @@ const verificationRequestSchema = z.object({
 router.get('/session', async (req: Request, res: Response) => {
   try {
     const session = createVerificationSession();
+
+    // Validate session has required fields
+    if (!session.appId || !session.schemaId) {
+      throw new Error('zkPass is not properly configured. Missing APP_ID or SCHEMA_ID.');
+    }
+
     res.json(session);
   } catch (error) {
     console.error('Failed to create verification session:', error);
     res.status(500).json({
       error: 'Failed to create verification session',
       message: error instanceof Error ? error.message : 'Unknown error',
+      details:
+        error instanceof Error && error.message.includes('configured')
+          ? 'Please ensure ZKPASS_APP_ID and ZKPASS_SCHEMA_ID are set in environment variables'
+          : undefined,
     });
   }
 });
@@ -70,23 +80,49 @@ router.post('/verify', async (req: Request, res: Response) => {
     if (!validationResult.success) {
       return res.status(400).json({
         error: 'Invalid request body',
-        details: validationResult.error.issues,
+        message: 'The proof data provided is invalid or incomplete',
+        details: validationResult.error.issues.map((issue) => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+        })),
       });
     }
 
     const { proof, schemaId, chainType = 'evm' } = validationResult.data;
 
+    // Additional validation
+    if (!proof.taskId || !proof.validatorSignature || !proof.uHash) {
+      return res.status(400).json({
+        error: 'Invalid proof structure',
+        message: 'The proof is missing required fields (taskId, validatorSignature, or uHash)',
+      });
+    }
+
     // Verify the proof
-    const isValid = await verifyZkPassProof(
-      proof as Result,
-      schemaId,
-      chainType as ChainType
-    );
+    let isValid: boolean;
+    try {
+      isValid = await verifyZkPassProof(
+        proof as Result,
+        schemaId,
+        chainType as ChainType
+      );
+    } catch (verifyError) {
+      console.error('zkPass verification error:', verifyError);
+      return res.status(500).json({
+        valid: false,
+        error: 'Proof verification service failed',
+        message:
+          verifyError instanceof Error
+            ? verifyError.message
+            : 'Failed to communicate with zkPass verification service',
+      });
+    }
 
     if (!isValid) {
       return res.status(400).json({
         valid: false,
         error: 'Proof verification failed',
+        message: 'The proof could not be verified. It may be invalid, expired, or tampered with.',
       });
     }
 
@@ -96,12 +132,13 @@ router.post('/verify', async (req: Request, res: Response) => {
     res.json({
       valid: true,
       publicFields,
+      message: 'Proof verified successfully',
     });
   } catch (error) {
     console.error('Proof verification error:', error);
     res.status(500).json({
       error: 'Verification failed',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: error instanceof Error ? error.message : 'An unexpected error occurred during verification',
     });
   }
 });

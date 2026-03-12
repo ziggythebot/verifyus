@@ -37,9 +37,13 @@ export default function ApplicantVerificationFlow({
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleVerificationComplete = async (result: Result) => {
     try {
+      setIsSubmitting(true);
+      setError(null);
+
       // Submit to backend to get verification ID
       const response = await fetch('/api/v1/verify', {
         method: 'POST',
@@ -55,10 +59,20 @@ export default function ApplicantVerificationFlow({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save verification');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error ||
+            errorData.message ||
+            `Failed to save verification: ${response.statusText}`
+        );
       }
 
       const data = await response.json();
+
+      if (!data.verificationId) {
+        throw new Error('No verification ID received from server');
+      }
+
       setVerificationId(data.verificationId);
       setCurrentStep('success');
 
@@ -66,8 +80,15 @@ export default function ApplicantVerificationFlow({
         onComplete(data.verificationId);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error('Verification submission failed:', err);
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'An unexpected error occurred while saving your verification';
+      setError(errorMessage);
       setCurrentStep('error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -144,6 +165,7 @@ export default function ApplicantVerificationFlow({
             onVerificationComplete={handleVerificationComplete}
             onVerificationError={handleVerificationError}
             onBack={() => setCurrentStep('consent')}
+            isSubmitting={isSubmitting}
           />
         )}
 
@@ -397,10 +419,12 @@ function VerifyStep({
   onVerificationComplete,
   onVerificationError,
   onBack,
+  isSubmitting,
 }: {
   onVerificationComplete: (result: Result) => void;
   onVerificationError: (error: Error) => void;
   onBack: () => void;
+  isSubmitting?: boolean;
 }) {
   return (
     <div className="space-y-6">
@@ -411,6 +435,13 @@ function VerifyStep({
         </p>
       </div>
 
+      {isSubmitting && (
+        <div className="flex items-center justify-center space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />
+          <span className="text-blue-800">Saving your verification...</span>
+        </div>
+      )}
+
       <ZkPassVerification
         onVerificationComplete={onVerificationComplete}
         onVerificationError={onVerificationError}
@@ -418,7 +449,8 @@ function VerifyStep({
 
       <button
         onClick={onBack}
-        className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+        disabled={isSubmitting}
+        className="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Back
       </button>

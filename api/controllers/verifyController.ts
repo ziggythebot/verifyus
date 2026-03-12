@@ -37,24 +37,41 @@ class VerifyController {
   // Submit new ZK proof
   async submitProof(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const validated = ProofSubmissionSchema.parse(req.body);
-      const { proof, metadata } = validated;
+      // Validate request body
+      const validationResult = ProofSubmissionSchema.safeParse(req.body);
+
+      if (!validationResult.success) {
+        throw new AppError('Invalid request data', 400, {
+          details: validationResult.error.issues.map((issue) => ({
+            field: issue.path.join('.'),
+            message: issue.message,
+          })),
+        });
+      }
+
+      const { proof, metadata } = validationResult.data;
 
       // Extract email from metadata or use recipient from proof
       const email = metadata?.email || proof.recipient;
       if (!email) {
-        throw new AppError('Email is required for verification', 400);
+        throw new AppError('Email is required for verification', 400, {
+          hint: 'Please provide an email address in the metadata or proof recipient field',
+        });
       }
 
       // Validate email format
       if (!z.string().email().safeParse(email).success) {
-        throw new AppError('Invalid email format', 400);
+        throw new AppError('Invalid email format', 400, {
+          hint: 'Please provide a valid email address',
+        });
       }
 
       // TODO: Validate ZK proof with zkPass validator
       // For now, basic validation of proof structure
       if (!proof.taskId || !proof.validatorSignature || !proof.uHash) {
-        throw new AppError('Invalid proof structure', 400);
+        throw new AppError('Invalid proof structure', 400, {
+          hint: 'The proof is missing required fields. Please generate a new proof.',
+        });
       }
 
       // Serialize proof for storage
@@ -62,90 +79,135 @@ class VerifyController {
       const proofHash = proof.uHash; // Use uHash as unique identifier
 
       // Check for existing applicant
-      let applicant = await db.query(
-        'SELECT id, email FROM applicants WHERE email = $1',
-        [email]
-      );
+      let applicant;
+      try {
+        applicant = await db.query(
+          'SELECT id, email FROM applicants WHERE email = $1',
+          [email]
+        );
+      } catch (dbError) {
+        console.error('Database error checking applicant:', dbError);
+        throw new AppError('Database error', 500, {
+          hint: 'Failed to check applicant records. Please try again.',
+        });
+      }
 
       let applicantId: string;
 
       if (applicant.rows.length === 0) {
         // Create new applicant
-        const newApplicant = await db.query(
-          'INSERT INTO applicants (id, email, created_at) VALUES ($1, $2, NOW()) RETURNING id',
-          [uuidv4(), email]
-        );
-        applicantId = newApplicant.rows[0].id;
+        try {
+          const newApplicant = await db.query(
+            'INSERT INTO applicants (id, email, created_at) VALUES ($1, $2, NOW()) RETURNING id',
+            [uuidv4(), email]
+          );
+          applicantId = newApplicant.rows[0].id;
+        } catch (dbError) {
+          console.error('Database error creating applicant:', dbError);
+          throw new AppError('Database error', 500, {
+            hint: 'Failed to create applicant record. Please try again.',
+          });
+        }
       } else {
         applicantId = applicant.rows[0].id;
       }
 
       // Check for duplicate proof using uHash
-      const duplicateCheck = await db.query(
-        'SELECT is_duplicate_proof($1) as is_duplicate',
-        [proofHash]
-      );
+      let duplicateCheck;
+      try {
+        duplicateCheck = await db.query(
+          'SELECT is_duplicate_proof($1) as is_duplicate',
+          [proofHash]
+        );
+      } catch (dbError) {
+        console.error('Database error checking duplicate:', dbError);
+        throw new AppError('Database error', 500, {
+          hint: 'Failed to check for duplicate proofs. Please try again.',
+        });
+      }
 
       if (duplicateCheck.rows[0].is_duplicate) {
         // Log fraud alert
-        await db.query(
-          `INSERT INTO fraud_alerts
-           (id, applicant_id, alert_type, severity, description, created_at)
-           VALUES ($1, $2, $3, $4, $5, NOW())`,
-          [
-            uuidv4(),
-            applicantId,
-            'duplicate_proof',
-            'high',
-            `Duplicate proof detected - proof hash ${proofHash} already used`
-          ]
-        );
+        try {
+          await db.query(
+            `INSERT INTO fraud_alerts
+             (id, applicant_id, alert_type, severity, description, created_at)
+             VALUES ($1, $2, $3, $4, $5, NOW())`,
+            [
+              uuidv4(),
+              applicantId,
+              'duplicate_proof',
+              'high',
+              `Duplicate proof detected - proof hash ${proofHash} already used`
+            ]
+          );
+        } catch (dbError) {
+          console.error('Failed to log fraud alert:', dbError);
+          // Continue - don't fail the request if fraud logging fails
+        }
 
         throw new AppError('Duplicate proof detected', 400, {
-          reason: 'This proof has already been used by another applicant'
+          reason: 'This proof has already been used by another applicant',
+          hint: 'Each proof can only be used once. Please generate a new proof.',
         });
       }
 
       // Store proof (encrypted)
       // TODO: Add encryption before storing
       const proofId = uuidv4();
-      const verificationId = uuidv4(); // ID returned to frontend
 
-      await db.query(
-        `INSERT INTO proofs
-         (id, applicant_id, proof_data, proof_type, verified_at, expires_at, confidence_score)
-         VALUES ($1, $2, $3, $4, NOW(), NOW() + INTERVAL '90 days', $5)`,
-        [proofId, applicantId, proofData, 'zkpass', 0.95]
-      );
+      try {
+        await db.query(
+          `INSERT INTO proofs
+           (id, applicant_id, proof_data, proof_type, verified_at, expires_at, confidence_score)
+           VALUES ($1, $2, $3, $4, NOW(), NOW() + INTERVAL '90 days', $5)`,
+          [proofId, applicantId, proofData, 'zkpass', 0.95]
+        );
+      } catch (dbError) {
+        console.error('Database error storing proof:', dbError);
+        throw new AppError('Database error', 500, {
+          hint: 'Failed to store proof. Please try again.',
+        });
+      }
 
       // Update applicant last_verified_at
-      await db.query(
-        'UPDATE applicants SET last_verified_at = NOW() WHERE id = $1',
-        [applicantId]
-      );
+      try {
+        await db.query(
+          'UPDATE applicants SET last_verified_at = NOW() WHERE id = $1',
+          [applicantId]
+        );
+      } catch (dbError) {
+        console.error('Failed to update applicant timestamp:', dbError);
+        // Continue - don't fail the request if timestamp update fails
+      }
 
       // Log audit event
-      await db.query(
-        `INSERT INTO audit_logs
-         (id, user_id, user_type, action, resource_type, resource_id, ip_address, user_agent, status, metadata, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
-        [
-          uuidv4(),
-          applicantId,
-          'applicant',
-          'proof_created',
-          'proof',
-          proofId,
-          metadata?.ipAddress || req.ip,
-          req.headers['user-agent'] || 'unknown',
-          'success',
-          JSON.stringify({
-            jobTitle: metadata?.jobTitle,
-            companyName: metadata?.companyName,
-            taskId: proof.taskId
-          })
-        ]
-      );
+      try {
+        await db.query(
+          `INSERT INTO audit_logs
+           (id, user_id, user_type, action, resource_type, resource_id, ip_address, user_agent, status, metadata, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
+          [
+            uuidv4(),
+            applicantId,
+            'applicant',
+            'proof_created',
+            'proof',
+            proofId,
+            metadata?.ipAddress || req.ip,
+            req.headers['user-agent'] || 'unknown',
+            'success',
+            JSON.stringify({
+              jobTitle: metadata?.jobTitle,
+              companyName: metadata?.companyName,
+              taskId: proof.taskId
+            })
+          ]
+        );
+      } catch (dbError) {
+        console.error('Failed to log audit event:', dbError);
+        // Continue - don't fail the request if audit logging fails
+      }
 
       res.status(201).json({
         success: true,
