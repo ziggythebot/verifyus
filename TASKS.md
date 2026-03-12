@@ -5,10 +5,10 @@
 - [x] Set up PostgreSQL database schema
 - [x] Create Express API server
 - [x] Configure environment variables and secrets
-- [ ] Set up Git repository structure
+- [x] Set up Git repository structure
 
 ## zkPass Integration
-- [ ] Register zkPass DevHub account and create project
+- [x] Register zkPass DevHub account and create project
 - [ ] Create schema for US residency verification
 - [ ] Install and configure zkPass TransGate SDK
 - [ ] Build proof generation component
