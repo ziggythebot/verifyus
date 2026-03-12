@@ -2,11 +2,56 @@
 
 **Stop losing $50K+ per fraudulent hire.**
 
-VerifyUS is zero-knowledge proof-based US work authorization verification for recruitment platforms. Applicants prove they're authorized to work in the US—without revealing passports, SSNs, or IDs. You block fraud before it hits your ATS.
+VerifyUS blocks recruitment fraud with zero-knowledge proof verification: work authorization + physical US location + real person detection. No more fake profiles. No more foreign applicants pretending they're in the US. Just real, verified candidates.
 
 ---
 
-## The Problem We Solve
+## 🚧 Current Status: Beta V1 → Iterating on Customer Feedback
+
+**What we've built (Beta V1):**
+- ✅ Work authorization verification (passport/ID/SSN)
+- ✅ Zero-knowledge proofs (privacy-preserving)
+- ✅ ATS integration (Greenhouse/Lever)
+- ✅ Embeddable widget + API
+
+**What we're adding next (based on Nick's feedback from Enticeable):**
+1. **Geolocation verification** - Prove physical US presence (not just passport)
+2. **Bot detection** - Block fake profiles created by competitors
+3. **Enhanced KYC** - Integrate with Sum/Sub or similar for stronger identity verification
+
+See [NICK_FEEDBACK_ANALYSIS.md](./NICK_FEEDBACK_ANALYSIS.md) for full analysis and roadmap.
+
+---
+
+## The Problems We Solve
+
+### Problem 1: Foreign Applicants Faking US Location
+- Applicants in India/Philippines/Pakistan claim they're in the US
+- Get through entire interview process
+- Only after job offer: "I need visa sponsorship"
+- **Current workaround:** WeWork verification (doesn't scale)
+
+### Problem 2: Competitor Bots Stealing Job Intel
+- Recruiters create fake LinkedIn profiles (100s of them)
+- Fake profiles pretend to be "perfect candidates"
+- When contacted, they demand: "Tell me which company first"
+- **Goal:** Steal competitor's client list
+
+### Problem 3: AI-Powered Identity Fraud
+- Deepfake video interviews
+- Stolen identities
+- Fake documents
+- **Average loss: $50K+ per fraudulent hire** (2025 data)
+
+**Current solutions fail:**
+- ❌ ATS filters get bypassed (applicants lie)
+- ❌ Manual checks don't scale (WeWork = expensive, slow)
+- ❌ Background checks too slow for application stage
+- ❌ Existing KYC (Doti/OTI) = identity only, no geolocation
+
+---
+
+## How VerifyUS Works (Beta V1)
 
 **US recruitment platforms are drowning in fraud:**
 - Foreign applicants flood systems hoping for visa sponsorship
