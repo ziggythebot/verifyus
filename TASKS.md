@@ -11,7 +11,7 @@
 - [x] Register zkPass DevHub account and create project
 - [x] Create schema for US residency verification
 - [x] Install and configure zkPass TransGate SDK
-- [ ] Build proof generation component
+- [x] Build proof generation component
 - [ ] Test proof validation with sample data
 
 ## Frontend - Verification Widget
