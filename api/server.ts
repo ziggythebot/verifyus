@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { config } from 'dotenv';
+import path from 'path';
 import verifyRoutes from './routes/verify';
 import webhookRoutes from './routes/webhooks';
 import analyticsRoutes from './routes/analytics';
@@ -10,7 +11,8 @@ import { errorHandler } from './middleware/errorHandler';
 import { rateLimiter } from './middleware/rateLimiter';
 import { validateEnv } from '../lib/env';
 
-config();
+// Load .env from project root
+config({ path: path.join(__dirname, '..', '.env') });
 validateEnv(); // Validate environment variables on startup
 
 const app: Express = express();

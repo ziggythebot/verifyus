@@ -5,6 +5,11 @@
 
 import { Pool, PoolClient, QueryResult } from 'pg';
 import crypto from 'crypto';
+import { config } from 'dotenv';
+import path from 'path';
+
+// Load .env before accessing environment variables
+config({ path: path.join(__dirname, '..', '.env') });
 
 // Environment variables validation
 const DATABASE_URL = process.env.DATABASE_URL;
