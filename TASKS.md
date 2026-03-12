@@ -10,7 +10,7 @@
 ## zkPass Integration
 - [x] Register zkPass DevHub account and create project
 - [x] Create schema for US residency verification
-- [ ] Install and configure zkPass TransGate SDK
+- [x] Install and configure zkPass TransGate SDK
 - [ ] Build proof generation component
 - [ ] Test proof validation with sample data
 
