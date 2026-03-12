@@ -1,150 +1,153 @@
-# Environment Variables Setup Guide
+# Environment Setup Guide
 
-## Overview
+This document describes how to configure environment variables for the VerifyUs project.
 
-This project uses three environment files:
+## Quick Start
 
-1. **`.env`** - Main configuration file for both API and database
-2. **`.env.local`** - Next.js frontend-specific variables (Git-ignored)
-3. **`api/.env.api`** - Documentation of API-specific variables
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
 
-## Initial Setup
+2. Generate secure secrets:
+   ```bash
+   # Proof encryption key (already done)
+   openssl rand -hex 32
+   
+   # Session secret (already done)
+   openssl rand -hex 32
+   
+   # JWT secret (already done)
+   openssl rand -hex 32
+   ```
 
-### 1. Core Secrets (Already Configured)
+3. Update `.env` with your actual values (see below)
 
-✅ **DATABASE_URL** - PostgreSQL connection string (using local user)
-✅ **PROOF_ENCRYPTION_KEY** - 64-character hex key for encrypting stored proofs
-✅ **SESSION_SECRET** - Session encryption key
-✅ **JWT_SECRET** - JWT token signing key
+4. Test your configuration:
+   ```bash
+   npm run test:env
+   ```
 
-### 2. Required Configuration (To Do)
+## Required Variables
 
-#### zkPass Integration
-Before you can verify US residency, you need:
+These must be configured for the application to run:
 
-1. Register at [zkPass DevHub](https://devhub.zkpass.org)
-2. Create a new project
-3. Create a schema for US residency verification
-4. Get your credentials and update `.env`:
+- **DATABASE_URL**: PostgreSQL connection string
+  - Format: `postgresql://user:password@host:port/database`
+  - Example: `postgresql://ziggy@localhost:5432/verifyus`
 
-```bash
-ZKPASS_APP_ID=your-actual-app-id-here
-ZKPASS_SCHEMA_ID=your-actual-schema-id-here
-```
+- **PROOF_ENCRYPTION_KEY**: 64-character hex key for encrypting sensitive proof data
+  - Generate with: `openssl rand -hex 32`
+  - Must be exactly 64 characters
 
-Also update `.env.local`:
-```bash
-NEXT_PUBLIC_ZKPASS_APP_ID=your-actual-app-id-here
-```
+- **SESSION_SECRET**: Secret for session encryption (min 32 chars)
+  - Generate with: `openssl rand -hex 32`
 
-### 3. Optional Integrations
+- **JWT_SECRET**: Secret for JWT token signing (min 32 chars)
+  - Generate with: `openssl rand -hex 32`
 
-#### ATS Integration (Greenhouse/Lever)
-For automated applicant verification:
+- **NODE_ENV**: Application environment
+  - Values: `development`, `production`, `test`
 
-```bash
-GREENHOUSE_API_KEY=your-api-key
-GREENHOUSE_WEBHOOK_SECRET=webhook-secret
-LEVER_API_KEY=your-api-key
-LEVER_WEBHOOK_SECRET=webhook-secret
-```
+- **PORT** / **API_PORT**: Port for API server
+  - Default: `3001`
 
-#### Redis (Rate Limiting & Caching)
-For production use:
+- **API_BASE_URL**: Base URL for API
+  - Development: `http://localhost:3001`
+  - Production: Your deployed API URL
 
-```bash
-REDIS_URL=redis://user:password@host:port
-```
+## Optional - zkPass Integration
 
-#### Email Notifications
-Configure SMTP for sending verification emails:
+Required for actual verification functionality:
 
-```bash
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_USER=apikey
-SMTP_PASSWORD=your-sendgrid-api-key
-FROM_EMAIL=noreply@verifyus.com
-```
+- **ZKPASS_APP_ID**: Your zkPass application ID
+  - Register at: https://devhub.zkpass.org
+  
+- **ZKPASS_SCHEMA_ID**: Schema ID for your verification flow
 
-#### Monitoring
-For error tracking and logging:
+## Optional - ATS Integration
 
-```bash
-SENTRY_DSN=https://your-sentry-dsn
-LOG_LEVEL=info  # debug|info|warn|error
-```
+For Greenhouse integration:
+- **GREENHOUSE_API_KEY**: API key from Greenhouse
+- **GREENHOUSE_WEBHOOK_SECRET**: Secret for webhook verification
 
-#### Blockchain (Optional - Future)
+For Lever integration:
+- **LEVER_API_KEY**: API key from Lever
+- **LEVER_WEBHOOK_SECRET**: Secret for webhook verification
+
+## Optional - Rate Limiting
+
+- **REDIS_URL**: Redis connection string for rate limiting
+  - Format: `redis://user:password@host:port`
+  - Not required in development
+
+## Optional - Email Notifications
+
+- **SMTP_HOST**: SMTP server hostname
+- **SMTP_PORT**: SMTP server port (default: 587)
+- **SMTP_USER**: SMTP authentication username
+- **SMTP_PASSWORD**: SMTP authentication password
+- **FROM_EMAIL**: Email address for outgoing notifications
+
+## Optional - Monitoring
+
+- **SENTRY_DSN**: Sentry DSN for error tracking
+- **LOG_LEVEL**: Logging level (`debug`, `info`, `warn`, `error`)
+
+## Optional - Blockchain
+
 For on-chain proof registry:
+- **BLOCKCHAIN_ENABLED**: Enable blockchain features (`true`/`false`)
+- **BLOCKCHAIN_NETWORK**: Network name (e.g., `polygon`)
+- **BLOCKCHAIN_RPC_URL**: RPC endpoint URL
+- **BLOCKCHAIN_PRIVATE_KEY**: Private key for transactions
 
+## Validation
+
+The application validates all environment variables on startup using Zod schemas.
+
+Run the validation test:
 ```bash
-BLOCKCHAIN_ENABLED=true
-BLOCKCHAIN_NETWORK=polygon
-BLOCKCHAIN_RPC_URL=https://polygon-rpc.com
-BLOCKCHAIN_PRIVATE_KEY=your-private-key
+npm run test:env
 ```
 
-## Security Best Practices
+This will:
+- ✅ Validate all required variables are present and correctly formatted
+- ⚠️  Warn about missing optional variables
+- ❌ Exit with error if validation fails
 
-### Git Ignore
-The following files are already in `.gitignore`:
-- `.env`
-- `.env.local`
-- `.env*.local`
+## Security Notes
 
-### Never Commit
-- Real API keys
-- Database passwords
-- Private keys
-- Encryption keys
+1. **Never commit `.env` to version control** - it's already in `.gitignore`
+2. **Rotate secrets regularly** in production
+3. **Use different secrets** for development and production
+4. **Store production secrets** in your deployment platform (Railway, Vercel, etc.)
+5. **Keep encryption keys secure** - lost keys mean lost data
 
-### Production Deployment
+## Deployment
 
-When deploying, set environment variables in your platform:
+### Railway / Render / Heroku
 
-**Vercel (Frontend)**
-- `NEXT_PUBLIC_API_URL`
-- `NEXT_PUBLIC_ZKPASS_APP_ID`
+Set environment variables in the platform dashboard. Most platforms support:
+- Bulk import from `.env` file
+- Secret rotation
+- Environment-specific variables
 
-**Railway/Render (Backend)**
-- All variables from `.env`
-- Update `DATABASE_URL` to production database
-- Update `API_BASE_URL` to production API URL
+### Vercel
 
-## Testing
+Add environment variables in project settings:
+1. Go to project settings
+2. Navigate to "Environment Variables"
+3. Add each variable for Production, Preview, and Development as needed
 
-Test your configuration:
+### Docker
 
+Use `--env-file` flag:
 ```bash
-# Test database connection
-npm run db:migrate
-
-# Start API server (should load .env)
-cd api && npm run dev
-
-# Start Next.js frontend (loads .env.local)
-npm run dev
+docker run --env-file .env your-image
 ```
 
-## Current Status
-
-### ✅ Configured
-- Database connection
-- Encryption keys
-- Session/JWT secrets
-- Basic API configuration
-
-### ⏳ Needs Setup
-- zkPass credentials (required for verification)
-- ATS integration (optional, for pilot customers)
-- Redis (optional, recommended for production)
-- Email configuration (optional, for notifications)
-
-## Next Steps
-
-1. **Register zkPass account** and get credentials
-2. Update zkPass variables in `.env` and `.env.local`
-3. Test proof generation with zkPass SDK
-4. (Optional) Set up Redis for rate limiting
-5. (Optional) Configure SMTP for email notifications
+Or pass individual variables:
+```bash
+docker run -e DATABASE_URL="..." -e PROOF_ENCRYPTION_KEY="..." your-image
+```

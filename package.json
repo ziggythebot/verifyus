@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx scripts/test-env.ts",
+    "test:env": "tsx scripts/test-env.ts",
     "db:setup": "cd db && ./setup.sh",
     "db:migrate": "psql $DATABASE_URL -f db/schema.sql",
     "api:dev": "tsx --watch api/server.ts",
