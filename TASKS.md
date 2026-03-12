@@ -22,7 +22,7 @@
 - [x] Make widget embeddable (script tag)
 
 ## Frontend - Applicant Dashboard
-- [ ] Create applicant authentication system
+- [x] Create applicant authentication system
 - [ ] Build dashboard showing verification status
 - [ ] Display proof expiration date
 - [ ] Add re-verification flow
