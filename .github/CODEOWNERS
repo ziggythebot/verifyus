@@ -1,0 +1,12 @@
+# Default code owners for the entire repository
+* @ziggy
+
+# Database migrations and schema
+/db/ @ziggy
+
+# API server
+/api/ @ziggy
+
+# Documentation
+/docs/ @ziggy
+*.md @ziggy
