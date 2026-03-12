@@ -7,10 +7,21 @@ import db from '../../lib/db';
 
 // Validation schemas
 const ProofSubmissionSchema = z.object({
-  email: z.string().email(),
-  proofData: z.string(),
-  proofType: z.enum(['us_passport', 'state_id', 'ssn_address']),
+  proof: z.object({
+    allocatorAddress: z.string(),
+    allocatorSignature: z.string(),
+    publicFields: z.array(z.any()),
+    publicFieldsHash: z.string(),
+    taskId: z.string(),
+    uHash: z.string(),
+    validatorAddress: z.string(),
+    validatorSignature: z.string(),
+    recipient: z.string().optional(),
+  }),
   metadata: z.object({
+    jobTitle: z.string().optional(),
+    companyName: z.string().optional(),
+    email: z.string().email().optional(),
     deviceId: z.string().optional(),
     ipAddress: z.string().optional(),
   }).optional()
@@ -27,19 +38,32 @@ class VerifyController {
   async submitProof(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const validated = ProofSubmissionSchema.parse(req.body);
-      const { email, proofData, proofType, metadata } = validated;
+      const { proof, metadata } = validated;
 
-      // TODO: Validate ZK proof with zkPass
-      // For now, assume valid proof
-      const isValidProof = true;
-
-      if (!isValidProof) {
-        throw new AppError('Invalid proof', 400);
+      // Extract email from metadata or use recipient from proof
+      const email = metadata?.email || proof.recipient;
+      if (!email) {
+        throw new AppError('Email is required for verification', 400);
       }
+
+      // Validate email format
+      if (!z.string().email().safeParse(email).success) {
+        throw new AppError('Invalid email format', 400);
+      }
+
+      // TODO: Validate ZK proof with zkPass validator
+      // For now, basic validation of proof structure
+      if (!proof.taskId || !proof.validatorSignature || !proof.uHash) {
+        throw new AppError('Invalid proof structure', 400);
+      }
+
+      // Serialize proof for storage
+      const proofData = JSON.stringify(proof);
+      const proofHash = proof.uHash; // Use uHash as unique identifier
 
       // Check for existing applicant
       let applicant = await db.query(
-        'SELECT id FROM applicants WHERE email = $1',
+        'SELECT id, email FROM applicants WHERE email = $1',
         [email]
       );
 
@@ -56,10 +80,10 @@ class VerifyController {
         applicantId = applicant.rows[0].id;
       }
 
-      // Check for duplicate proof
+      // Check for duplicate proof using uHash
       const duplicateCheck = await db.query(
         'SELECT is_duplicate_proof($1) as is_duplicate',
-        [proofData]
+        [proofHash]
       );
 
       if (duplicateCheck.rows[0].is_duplicate) {
@@ -73,7 +97,7 @@ class VerifyController {
             applicantId,
             'duplicate_proof',
             'high',
-            'Duplicate proof detected - same proof used by multiple applicants'
+            `Duplicate proof detected - proof hash ${proofHash} already used`
           ]
         );
 
@@ -85,11 +109,13 @@ class VerifyController {
       // Store proof (encrypted)
       // TODO: Add encryption before storing
       const proofId = uuidv4();
+      const verificationId = uuidv4(); // ID returned to frontend
+
       await db.query(
         `INSERT INTO proofs
          (id, applicant_id, proof_data, proof_type, verified_at, expires_at, confidence_score)
          VALUES ($1, $2, $3, $4, NOW(), NOW() + INTERVAL '90 days', $5)`,
-        [proofId, applicantId, proofData, proofType, 0.95]
+        [proofId, applicantId, proofData, 'zkpass', 0.95]
       );
 
       // Update applicant last_verified_at
@@ -101,22 +127,29 @@ class VerifyController {
       // Log audit event
       await db.query(
         `INSERT INTO audit_logs
-         (id, entity_type, entity_id, action, actor_type, actor_id, ip_address, user_agent, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
+         (id, user_id, user_type, action, resource_type, resource_id, ip_address, user_agent, status, metadata, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
         [
           uuidv4(),
+          applicantId,
+          'applicant',
+          'proof_created',
           'proof',
           proofId,
-          'proof_created',
-          'applicant',
-          applicantId,
           metadata?.ipAddress || req.ip,
-          req.headers['user-agent'] || 'unknown'
+          req.headers['user-agent'] || 'unknown',
+          'success',
+          JSON.stringify({
+            jobTitle: metadata?.jobTitle,
+            companyName: metadata?.companyName,
+            taskId: proof.taskId
+          })
         ]
       );
 
       res.status(201).json({
         success: true,
+        verificationId: proofId, // Use proofId as verificationId
         applicantId,
         proofId,
         verified: true,

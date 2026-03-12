@@ -36,6 +36,7 @@ export default function ApplicantVerificationFlow({
   const [currentStep, setCurrentStep] = useState<FlowStep>('welcome');
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState<string>('');
 
   const handleVerificationComplete = async (result: Result) => {
     try {
@@ -46,6 +47,7 @@ export default function ApplicantVerificationFlow({
         body: JSON.stringify({
           proof: result,
           metadata: {
+            email,
             jobTitle,
             companyName,
           },
@@ -130,6 +132,8 @@ export default function ApplicantVerificationFlow({
 
         {currentStep === 'consent' && (
           <ConsentStep
+            email={email}
+            onEmailChange={setEmail}
             onNext={() => setCurrentStep('verify')}
             onBack={() => setCurrentStep('welcome')}
           />
@@ -258,11 +262,21 @@ function WelcomeStep({
   );
 }
 
-function ConsentStep({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
+function ConsentStep({
+  email,
+  onEmailChange,
+  onNext,
+  onBack
+}: {
+  email: string;
+  onEmailChange: (email: string) => void;
+  onNext: () => void;
+  onBack: () => void;
+}) {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
 
-  const canProceed = agreedToTerms && agreedToPrivacy;
+  const canProceed = agreedToTerms && agreedToPrivacy && email.length > 0 && email.includes('@');
 
   return (
     <div className="space-y-6">
@@ -305,7 +319,25 @@ function ConsentStep({ onNext, onBack }: { onNext: () => void; onBack: () => voi
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            Email Address
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
+            placeholder="your.email@example.com"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            We'll use this to send you verification updates
+          </p>
+        </div>
+
         <label className="flex items-start space-x-3 cursor-pointer">
           <input
             type="checkbox"
