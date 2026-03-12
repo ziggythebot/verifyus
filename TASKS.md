@@ -18,7 +18,7 @@
 - [x] Create Next.js verification widget component
 - [x] Build applicant verification flow UI
 - [x] Implement proof submission to API
-- [ ] Add loading states and error handling
+- [x] Add loading states and error handling
 - [ ] Make widget embeddable (script tag)
 
 ## Frontend - Applicant Dashboard
