@@ -293,9 +293,21 @@ export async function createVerification(data: {
  * Find employer by API key
  */
 export async function findEmployerByApiKey(apiKey: string) {
+  const normalizedKey = apiKey.startsWith('vus_')
+    ? apiKey.slice(4)
+    : apiKey;
+
+  const candidateKeys = Array.from(
+    new Set([apiKey, normalizedKey].filter(Boolean))
+  );
+
   const result = await query(
-    'SELECT * FROM employers WHERE api_key = $1 AND is_active = TRUE',
-    [apiKey]
+    `SELECT *
+     FROM employers
+     WHERE is_active = TRUE
+       AND api_key::text = ANY($1::text[])
+     LIMIT 1`,
+    [candidateKeys]
   );
   return result.rows[0] || null;
 }

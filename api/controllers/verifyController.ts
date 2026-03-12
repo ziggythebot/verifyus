@@ -4,6 +4,8 @@ import { AppError } from '../middleware/errorHandler';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
 import db from '../../lib/db';
+import { getZkPassConfig, verifyZkPassProof } from '../../lib/zkpass';
+import type { Result } from '@zkpass/transgate-js-sdk/lib/types';
 
 // Validation schemas
 const ProofSubmissionSchema = z.object({
@@ -67,10 +69,33 @@ class VerifyController {
       }
 
       // TODO: Validate ZK proof with zkPass validator
-      // For now, basic validation of proof structure
       if (!proof.taskId || !proof.validatorSignature || !proof.uHash) {
         throw new AppError('Invalid proof structure', 400, {
           hint: 'The proof is missing required fields. Please generate a new proof.',
+        });
+      }
+
+      // Enforce cryptographic proof validation (defense in depth).
+      // Client validates first, but server must always re-validate.
+      let schemaId: string;
+      try {
+        schemaId = getZkPassConfig().schemaId;
+      } catch (configError) {
+        throw new AppError('Verification service unavailable', 503, {
+          hint: 'zkPass is not configured on the server',
+          message: configError instanceof Error ? configError.message : 'Missing zkPass configuration',
+        });
+      }
+
+      const isProofValid = await verifyZkPassProof(
+        proof as Result,
+        schemaId,
+        'evm'
+      );
+
+      if (!isProofValid) {
+        throw new AppError('Invalid proof signature', 400, {
+          hint: 'Proof could not be cryptographically validated. Please generate a new proof.',
         });
       }
 
@@ -153,15 +178,33 @@ class VerifyController {
       }
 
       // Store proof (encrypted)
-      // TODO: Add encryption before storing
       const proofId = uuidv4();
+      const encryptedProofData = db.encryptProof(proofData);
 
       try {
         await db.query(
           `INSERT INTO proofs
-           (id, applicant_id, proof_data, proof_type, verified_at, expires_at, confidence_score)
-           VALUES ($1, $2, $3, $4, NOW(), NOW() + INTERVAL '90 days', $5)`,
-          [proofId, applicantId, proofData, 'zkpass', 0.95]
+           (
+             id, applicant_id, proof_data, proof_hash, proof_type, data_source,
+             verified_at, expires_at, confidence_score, ip_address, user_agent, metadata
+           )
+           VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW() + INTERVAL '90 days', $7, $8, $9, $10)`,
+          [
+            proofId,
+            applicantId,
+            encryptedProofData,
+            proofHash,
+            'zkpass',
+            'zkpass',
+            0.95,
+            metadata?.ipAddress || req.ip,
+            req.headers['user-agent'] || 'unknown',
+            JSON.stringify({
+              taskId: proof.taskId,
+              companyName: metadata?.companyName,
+              jobTitle: metadata?.jobTitle,
+            }),
+          ]
         );
       } catch (dbError) {
         console.error('Database error storing proof:', dbError);
@@ -240,7 +283,13 @@ class VerifyController {
 
       // Get active proof using database function
       const result = await db.query(
-        'SELECT * FROM get_active_proof($1)',
+        `SELECT id, proof_type, verified_at, expires_at, confidence_score
+         FROM proofs
+         WHERE applicant_id = $1
+           AND expires_at > NOW()
+           AND is_revoked = FALSE
+         ORDER BY verified_at DESC
+         LIMIT 1`,
         [applicantId]
       );
 
@@ -275,7 +324,13 @@ class VerifyController {
 
       // Get active proof
       const proofResult = await db.query(
-        'SELECT * FROM get_active_proof($1)',
+        `SELECT id, expires_at
+         FROM proofs
+         WHERE applicant_id = $1
+           AND expires_at > NOW()
+           AND is_revoked = FALSE
+         ORDER BY verified_at DESC
+         LIMIT 1`,
         [applicantId]
       );
 
@@ -335,7 +390,7 @@ class VerifyController {
            v.job_id,
            v.verified,
            v.verified_at,
-           e.name as employer_name
+           e.company_name as employer_name
          FROM verifications v
          LEFT JOIN employers e ON v.employer_id = e.id
          WHERE v.applicant_id = $1

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from './errorHandler';
+import db from '../../lib/db';
 
 export interface AuthRequest extends Request {
   employerId?: string;
@@ -19,14 +20,12 @@ export const authenticate = async (
       throw new AppError('API key required', 401);
     }
 
-    // TODO: Validate API key against database
-    // For now, just check if it exists
-    if (!apiKey.startsWith('vus_')) {
-      throw new AppError('Invalid API key format', 401);
+    const employer = await db.findEmployerByApiKey(apiKey);
+    if (!employer) {
+      throw new AppError('Invalid API key', 401);
     }
 
-    // Attach employer ID to request (would come from DB lookup)
-    req.employerId = 'temp-employer-id';
+    req.employerId = employer.id;
     req.apiKey = apiKey;
 
     next();
@@ -41,12 +40,21 @@ export const optionalAuth = async (
   res: Response,
   next: NextFunction
 ) => {
-  const apiKey = req.headers['x-api-key'] as string;
+  try {
+    const apiKey = req.headers['x-api-key'] as string;
 
-  if (apiKey && apiKey.startsWith('vus_')) {
-    req.employerId = 'temp-employer-id';
-    req.apiKey = apiKey;
+    if (!apiKey) {
+      return next();
+    }
+
+    const employer = await db.findEmployerByApiKey(apiKey);
+    if (employer) {
+      req.employerId = employer.id;
+      req.apiKey = apiKey;
+    }
+
+    next();
+  } catch (error) {
+    next(error);
   }
-
-  next();
 };

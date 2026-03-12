@@ -111,18 +111,19 @@ SELECT * FROM fraud_summary WHERE date >= NOW() - INTERVAL '7 days';
 
 ## Functions
 
-### `get_active_proof(applicant_email VARCHAR)`
+### `get_active_proof(applicant_id UUID)`
 Returns the most recent active proof for an applicant.
 
 ```sql
-SELECT * FROM get_active_proof('applicant@example.com');
+SELECT * FROM get_active_proof('00000000-0000-0000-0000-000000000000');
 ```
 
 Returns:
-- `proof_id`
+- `id`
 - `proof_type`
 - `verified_at`
 - `expires_at`
+- `confidence_score`
 - `is_expired` (boolean)
 
 ### `is_duplicate_proof(hash VARCHAR)`
@@ -263,7 +264,7 @@ SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
 INSERT INTO applicants (email) VALUES ('test@example.com') RETURNING *;
 
 -- Test functions
-SELECT * FROM get_active_proof('test@example.com');
+SELECT * FROM get_active_proof('00000000-0000-0000-0000-000000000000');
 SELECT is_duplicate_proof('nonexistent_hash');
 
 -- Test views

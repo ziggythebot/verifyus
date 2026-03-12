@@ -58,7 +58,8 @@ class AnalyticsController {
   async getTrends(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const employerId = req.employerId;
-      const days = parseInt(req.query.days as string) || 30;
+      const rawDays = parseInt(req.query.days as string, 10);
+      const days = Number.isNaN(rawDays) ? 30 : Math.min(Math.max(rawDays, 1), 365);
 
       if (!employerId) {
         throw new AppError('Employer ID not found', 401);
@@ -72,10 +73,10 @@ class AnalyticsController {
            COUNT(*) FILTER (WHERE verified = false) as rejected
          FROM verifications
          WHERE employer_id = $1
-           AND verified_at > NOW() - INTERVAL '${days} days'
+           AND verified_at > NOW() - ($2::int * INTERVAL '1 day')
          GROUP BY DATE(verified_at)
          ORDER BY date DESC`,
-        [employerId]
+        [employerId, days]
       );
 
       res.json({
@@ -92,7 +93,8 @@ class AnalyticsController {
   // Get fraud alerts
   async getFraudAlerts(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const limit = parseInt(req.query.limit as string) || 100;
+      const rawLimit = parseInt(req.query.limit as string, 10);
+      const limit = Number.isNaN(rawLimit) ? 100 : Math.min(Math.max(rawLimit, 1), 500);
       const severity = req.query.severity as string;
 
       let query = `
@@ -109,7 +111,7 @@ class AnalyticsController {
         WHERE fa.created_at > NOW() - INTERVAL '90 days'
       `;
 
-      const params: any[] = [];
+      const params: string[] = [];
 
       if (severity && ['low', 'medium', 'high', 'critical'].includes(severity)) {
         query += ' AND fa.severity = $1';

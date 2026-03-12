@@ -21,9 +21,27 @@
 (function (window) {
   'use strict';
 
+  function getDefaultBaseUrl() {
+    const script =
+      document.currentScript ||
+      Array.from(document.getElementsByTagName('script')).find((entry) =>
+        entry.src && entry.src.includes('widget.js')
+      );
+
+    if (script && script.src) {
+      try {
+        return new URL(script.src).origin;
+      } catch {
+        // Fall back to host page origin
+      }
+    }
+
+    return window.location.origin;
+  }
+
   // Default configuration
   const DEFAULT_CONFIG = {
-    baseUrl: window.location.origin,
+    baseUrl: getDefaultBaseUrl(),
     containerId: 'verifyus-widget',
     width: '100%',
     height: '600px',
@@ -40,6 +58,8 @@
       this.config = { ...DEFAULT_CONFIG, ...config };
       this.iframe = null;
       this.container = null;
+      this.messageHandler = null;
+      this.baseOrigin = new URL(this.config.baseUrl, window.location.href).origin;
     }
 
     /**
@@ -54,19 +74,16 @@
       }
 
       // Build iframe URL with parameters
-      const params = new URLSearchParams({
-        origin: window.location.origin,
-      });
+      const iframeUrl = new URL('/embed', this.config.baseUrl);
+      iframeUrl.searchParams.set('origin', window.location.origin);
 
       if (this.config.walletAddress) {
-        params.append('wallet', this.config.walletAddress);
+        iframeUrl.searchParams.set('wallet', this.config.walletAddress);
       }
-
-      const iframeUrl = `${this.config.baseUrl}/embed?${params.toString()}`;
 
       // Create iframe
       this.iframe = document.createElement('iframe');
-      this.iframe.src = iframeUrl;
+      this.iframe.src = iframeUrl.toString();
       this.iframe.style.width = this.config.width;
       this.iframe.style.height = this.config.height;
       this.iframe.style.border = 'none';
@@ -84,9 +101,9 @@
      * Set up message listener for iframe communication
      */
     setupMessageListener() {
-      window.addEventListener('message', (event) => {
+      this.messageHandler = (event) => {
         // Verify message origin matches baseUrl
-        if (event.origin !== this.config.baseUrl) {
+        if (event.origin !== this.baseOrigin) {
           return;
         }
 
@@ -111,7 +128,9 @@
             // Unknown message type
             break;
         }
-      });
+      };
+
+      window.addEventListener('message', this.messageHandler);
     }
 
     /**
@@ -121,6 +140,11 @@
       if (this.iframe && this.container) {
         this.container.removeChild(this.iframe);
         this.iframe = null;
+      }
+
+      if (this.messageHandler) {
+        window.removeEventListener('message', this.messageHandler);
+        this.messageHandler = null;
       }
     }
 

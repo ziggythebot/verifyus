@@ -295,13 +295,14 @@ ORDER BY date DESC, alert_count DESC;
 -- Utility functions for common operations
 -- =============================================================================
 
--- Get active proof for applicant
-CREATE OR REPLACE FUNCTION get_active_proof(applicant_email VARCHAR)
+-- Get active proof for applicant by applicant UUID
+CREATE OR REPLACE FUNCTION get_active_proof(applicant_id UUID)
 RETURNS TABLE (
-  proof_id UUID,
+  id UUID,
   proof_type VARCHAR,
   verified_at TIMESTAMP WITH TIME ZONE,
   expires_at TIMESTAMP WITH TIME ZONE,
+  confidence_score DECIMAL(3,2),
   is_expired BOOLEAN
 ) AS $$
 BEGIN
@@ -311,12 +312,13 @@ BEGIN
     p.proof_type,
     p.verified_at,
     p.expires_at,
+    p.confidence_score,
     (p.expires_at < NOW()) AS is_expired
   FROM proofs p
-  JOIN applicants a ON p.applicant_id = a.id
   WHERE
-    a.email = applicant_email
+    p.applicant_id = get_active_proof.applicant_id
     AND p.is_revoked = FALSE
+    AND p.expires_at > NOW()
   ORDER BY p.verified_at DESC
   LIMIT 1;
 END;

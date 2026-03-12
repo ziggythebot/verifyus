@@ -220,28 +220,26 @@ That's it. Applicants verify before applying.
 ## Documentation
 
 ### Getting Started
-- [Pilot Program Overview](./docs/PILOT_PROGRAM_OVERVIEW.md) - How to join the pilot
-- [Quick Start Checklist](./docs/PILOT_QUICK_START_CHECKLIST.md) - Setup guide for pilot customers
-- [Employer Onboarding Guide](./docs/EMPLOYER_ONBOARDING_GUIDE.md) - Full onboarding walkthrough
+- [Environment Setup](./docs/ENV_SETUP.md) - Local environment configuration
+- [zkPass Setup](./docs/zkpass-setup.md) - Register and configure zkPass
+- [Manual Steps Required](./docs/MANUAL_STEPS_REQUIRED.md) - External setup tasks
 
 ### Technical Docs
 - [API Documentation](./docs/api/README.md) - API reference
 - [zkPass Integration Guide](./docs/zkpass-integration.md) - How zero-knowledge proofs work
-- [Embeddable Widget Guide](./docs/EMBED_WIDGET.md) - How to embed the verification widget
-- [Greenhouse Setup](./docs/GREENHOUSE_SETUP.md) - ATS integration guide
-- [Webhook Testing](./docs/webhook-testing.md) - Test webhook flows
+- [Widget Embedding Guide](./docs/widget-embedding.md) - How to embed the verification widget
+- [Error Handling](./docs/ERROR_HANDLING.md) - Error flows and remediation
+- [API Implementation Notes](./docs/api/API_IMPLEMENTATION.md) - Route and controller details
 
 ### Deployment
-- [Railway Deployment](./RAILWAY_DEPLOYMENT.md) - Backend deployment guide
-- [Supabase Setup](./SUPABASE_SETUP_INSTRUCTIONS.md) - Database setup
-- [CloudFlare CDN Setup](./docs/CLOUDFLARE_CDN_SETUP.md) - CDN configuration
-- [Redis Setup](./docs/UPSTASH_REDIS_SETUP.md) - Redis cache setup
+- [Database Setup](./db/README.md) - Schema setup and DB operations
+- [API Setup](./api/README.md) - API server setup
+- [zkPass Registration Required](./docs/ZKPASS_REGISTRATION_REQUIRED.md) - External registration requirements
 
 ### Reference
 - [Product Specification](./product-spec.md) - Full product spec
 - [Implementation Plan](./implementation-plan.md) - Build timeline and architecture
 - [Research Document](./research.md) - Market research and competitive analysis
-- [ROI Calculator](./docs/ROI_CALCULATOR_TEMPLATE.md) - Calculate savings for your agency
 
 ---
 

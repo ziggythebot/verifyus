@@ -113,7 +113,7 @@ Daily fraud alert statistics by type and severity.
 
 ## Functions
 
-### `get_active_proof(applicant_email VARCHAR)`
+### `get_active_proof(applicant_id UUID)`
 Returns most recent active proof for an applicant with expiration status.
 
 ### `is_duplicate_proof(hash VARCHAR)`
