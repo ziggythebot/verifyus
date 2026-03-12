@@ -25,8 +25,8 @@
 - [x] Create applicant authentication system
 - [x] Build dashboard showing verification status
 - [x] Display proof expiration date
-- [ ] Add re-verification flow
-- [ ] Generate downloadable verification certificate
+- [x] Add re-verification flow
+- [x] Generate downloadable verification certificate
 
 ## Frontend - Employer Dashboard
 - [ ] Create employer authentication system
