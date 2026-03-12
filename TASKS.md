@@ -23,8 +23,8 @@
 
 ## Frontend - Applicant Dashboard
 - [x] Create applicant authentication system
-- [ ] Build dashboard showing verification status
-- [ ] Display proof expiration date
+- [x] Build dashboard showing verification status
+- [x] Display proof expiration date
 - [ ] Add re-verification flow
 - [ ] Generate downloadable verification certificate
 
