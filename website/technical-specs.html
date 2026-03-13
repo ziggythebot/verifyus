@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerifyUS :: Technical Specifications</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f1e8;
+            --text-main: #111111;
+            --text-muted: #555555;
+            --border: #111111;
+            --green: #00ff00;
+            --font-mono: 'Space Mono', 'Courier New', Courier, monospace;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: -1px -1px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg);
+            opacity: 0.95;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        header {
+            padding: 1.5rem 0;
+            border-bottom: 2px solid var(--border);
+            background: var(--bg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.05em;
+        }
+
+        .logo a {
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+        .beta {
+            background: var(--green);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
+            margin-left: 0.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .back-link {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            text-decoration: none;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+        }
+
+        .back-link:hover {
+            background: var(--text-main);
+            color: var(--bg);
+        }
+
+        main {
+            padding: 4rem 0;
+        }
+
+        h1 {
+            font-family: var(--font-mono);
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 2rem;
+            border-bottom: 4px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin: 3rem 0 1.5rem 0;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-family: var(--font-mono);
+            font-size: 1.125rem;
+            text-transform: uppercase;
+            margin: 2rem 0 1rem 0;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            max-width: 70ch;
+        }
+
+        .terminal {
+            background: var(--text-main);
+            color: var(--bg);
+            padding: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            margin: 2rem 0;
+            border: 2px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .terminal pre {
+            line-height: 1.8;
+        }
+
+        .code {
+            font-family: var(--font-mono);
+            background: #e0dcd2;
+            padding: 0.2rem 0.4rem;
+            border: 1px solid var(--border);
+            font-size: 0.875rem;
+        }
+
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+        }
+
+        .spec-table th,
+        .spec-table td {
+            border: 1px solid var(--border);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .spec-table th {
+            background: var(--text-main);
+            color: var(--bg);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border: 2px solid var(--border);
+            background: var(--text-main);
+            color: var(--bg);
+            margin: 2rem 0;
+            transition: transform 0.1s;
+        }
+
+        .github-link:hover {
+            transform: translate(2px, 2px);
+        }
+
+        .github-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        ul {
+            margin: 1rem 0 1rem 2rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        footer {
+            border-top: 2px solid var(--border);
+            padding: 2rem 0;
+            margin-top: 4rem;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container header-inner">
+        <div class="logo">
+            <a href="index.html">VerifyUS //</a>
+            <span class="beta">BETA</span>
+        </div>
+        <a href="index.html" class="back-link">← BACK_TO_HOME</a>
+    </div>
+</header>
+
+<main class="container">
+    <h1>Technical Specifications</h1>
+
+    <p><strong>Status:</strong> Beta — Core verification system operational. Production deployment Q2 2026.</p>
+
+    <h2>Architecture Overview</h2>
+
+    <p>VerifyUS uses a three-layer verification architecture designed for ATS integration with minimal engineering overhead.</p>
+
+    <h3>Core Components</h3>
+
+    <ul>
+        <li><strong>Webhook Receiver:</strong> Intercepts application submissions from ATS platforms</li>
+        <li><strong>Verification Engine:</strong> Multi-stage bot detection and identity verification</li>
+        <li><strong>Result Injector:</strong> Returns verification status to ATS with metadata</li>
+    </ul>
+
+    <div class="terminal">
+<pre>┌─────────────────────────────────────────────────┐
+│  APPLICATION FLOW                               │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ATS (Greenhouse/Lever/Workday)                │
+│         ↓                                       │
+│  VerifyUS Webhook                               │
+│         ↓                                       │
+│  Verification Engine                            │
+│    ├─ L1: IP/Proxy Analysis                    │
+│    ├─ L2: ID Verification + Liveness           │
+│    └─ L3: Social Proof + Employment Check      │
+│         ↓                                       │
+│  Result → ATS (verified/rejected + metadata)   │
+│                                                 │
+└─────────────────────────────────────────────────┘</pre>
+    </div>
+
+    <h2>Integration Methods</h2>
+
+    <h3>Option 1: Manual Batch Processing (Recommended for Beta)</h3>
+
+    <p>Export pre-screened applicants from your CRM/ATS and verify in batches. Only pay for candidates you've already filtered. No automatic webhook costs on every incoming application.</p>
+
+    <div class="terminal">
+<pre># Batch verification API
+POST https://api.verifyus.com/v1/batch
+Authorization: Bearer vk_live_YOUR_API_KEY
+
+{
+  "applicants": [
+    {"id": "app_001", "email": "candidate1@example.com"},
+    {"id": "app_002", "email": "candidate2@example.com"}
+  ],
+  "tier": "L2",
+  "callback_url": "https://your-crm.com/webhooks/verifyus"
+}</pre>
+    </div>
+
+    <h3>Option 2: Automatic Webhook Integration</h3>
+
+    <p>Real-time verification for every incoming application. Best for high-volume roles with severe bot spam.</p>
+
+    <div class="terminal">
+<pre># Configure webhook in your ATS
+POST https://api.verifyus.com/v1/webhooks
+Authorization: Bearer vk_live_YOUR_API_KEY
+
+{
+  "ats_provider": "greenhouse",
+  "target_url": "https://boards-api.greenhouse.io/v1/boards/YOUR_BOARD/jobs",
+  "verification_tier": "L2",
+  "auto_reject": true
+}</pre>
+    </div>
+
+    <h3>Supported ATS Platforms</h3>
+
+    <table class="spec-table">
+        <tr>
+            <th>Platform</th>
+            <th>Integration Type</th>
+            <th>Setup Time</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td>Greenhouse</td>
+            <td>Webhook + API</td>
+            <td>~10 min</td>
+            <td>✓ Supported</td>
+        </tr>
+        <tr>
+            <td>Lever</td>
+            <td>Webhook + API</td>
+            <td>~10 min</td>
+            <td>✓ Supported</td>
+        </tr>
+        <tr>
+            <td>Workday</td>
+            <td>Custom Integration</td>
+            <td>~30 min</td>
+            <td>✓ Supported</td>
+        </tr>
+        <tr>
+            <td>Ashby</td>
+            <td>Webhook + API</td>
+            <td>~10 min</td>
+            <td>✓ Supported</td>
+        </tr>
+        <tr>
+            <td>Custom ATS</td>
+            <td>REST API</td>
+            <td>Varies</td>
+            <td>Contact us</td>
+        </tr>
+    </table>
+
+    <h2>Verification Tiers</h2>
+
+    <h3>L1: Pre-Filter ($1/app)</h3>
+    <ul>
+        <li>IP address analysis (VPN/proxy detection)</li>
+        <li>Device fingerprinting</li>
+        <li>Rate limiting (application velocity)</li>
+        <li><strong>Blocks:</strong> 40-60% of bot traffic</li>
+    </ul>
+
+    <h3>L2: Standard ($3/app) [RECOMMENDED]</h3>
+    <ul>
+        <li>All L1 checks</li>
+        <li>Government ID verification (Passport, Driver's License, State ID)</li>
+        <li>Biometric liveness detection (webcam-based, no app required)</li>
+        <li>Work authorization check (US-only, expandable)</li>
+        <li><strong>Blocks:</strong> 95%+ of bot traffic</li>
+    </ul>
+
+    <h3>L3: Deep Scan ($4/app)</h3>
+    <ul>
+        <li>All L2 checks</li>
+        <li>LLM-powered social proof scraping (LinkedIn, GitHub, Twitter)</li>
+        <li>Employment history cross-check</li>
+        <li>Dedicated Slack channel for high-risk alerts</li>
+        <li><strong>Blocks:</strong> 99.9% of bot traffic</li>
+    </ul>
+
+    <h2>Security & Compliance</h2>
+
+    <h3>Zero-Knowledge Proof Architecture</h3>
+
+    <p>VerifyUS uses <strong>zkPass</strong> cryptographic proofs anchored on Ethereum for tamper-proof identity verification. AI-powered verification engine + blockchain attestation.</p>
+
+    <div class="terminal">
+<pre>┌─────────────────────────────────────────────────┐
+│  VERIFICATION FLOW (zkPass + Ethereum)          │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  Applicant uploads ID                           │
+│         ↓                                       │
+│  AI verification layer (liveness + ID check)    │
+│         ↓                                       │
+│  Generate zkProof (no PII stored)               │
+│         ↓                                       │
+│  Anchor proof hash to Ethereum                  │
+│         ↓                                       │
+│  Return verification token to recruiter         │
+│                                                 │
+│  ✓ Recruiter sees: VERIFIED                    │
+│  ✓ Blockchain record: proof hash only           │
+│  ✓ VerifyUS storage: ZERO identity data         │
+│                                                 │
+└─────────────────────────────────────────────────┘</pre>
+    </div>
+
+    <h3>What We NEVER Store</h3>
+    <ul>
+        <li>Passport/ID document scans</li>
+        <li>Social Security Numbers or tax IDs</li>
+        <li>Biometric templates (facial recognition data)</li>
+        <li>Government ID numbers</li>
+    </ul>
+
+    <p><strong>We only store:</strong> Cryptographic proof hashes anchored to Ethereum. The blockchain becomes the immutable verification ledger — no central honeypot of identity data.</p>
+
+    <h3>Compliance & Regulatory Framework</h3>
+
+    <p>VerifyUS is designed for <strong>cross-border hiring compliance</strong> — US, EU, UK regulations met by default using anonymized cryptographic proofs instead of centralized PII storage.</p>
+
+    <table class="spec-table">
+        <tr>
+            <th>Regulation</th>
+            <th>Requirement</th>
+            <th>VerifyUS Solution</th>
+        </tr>
+        <tr>
+            <td>GDPR (EU)</td>
+            <td>Right to erasure, data minimization</td>
+            <td>Zero PII storage — only proof hashes on Ethereum</td>
+        </tr>
+        <tr>
+            <td>CCPA (California)</td>
+            <td>Consumer data rights, opt-out</td>
+            <td>No personal data retained = no breach risk</td>
+        </tr>
+        <tr>
+            <td>UK DPA 2018</td>
+            <td>Lawful basis for processing</td>
+            <td>Cryptographic verification without storing biometrics</td>
+        </tr>
+        <tr>
+            <td>SOC 2 Type II</td>
+            <td>Security controls audit</td>
+            <td>Certification Q3 2026</td>
+        </tr>
+    </table>
+
+    <h3>Data Sovereignty</h3>
+    <ul>
+        <li><strong>Verification happens locally:</strong> AI processing in-region (US-East, EU-West)</li>
+        <li><strong>Blockchain anchoring:</strong> Public Ethereum mainnet (global) or Polygon (cost-optimized)</li>
+        <li><strong>No data export:</strong> Identity documents never leave verification node</li>
+        <li><strong>Anonymized proofs:</strong> Blockchain stores cryptographic hashes, not identity attributes</li>
+    </ul>
+
+    <h3>Technical Security</h3>
+    <ul>
+        <li><strong>Encryption:</strong> TLS 1.3 for all API traffic, AES-256 at rest</li>
+        <li><strong>Access control:</strong> Zero-trust architecture, API keys rotated every 90 days</li>
+        <li><strong>Audit trail:</strong> Immutable verification log on Ethereum (query by proof hash)</li>
+    </ul>
+
+    <h2>API Reference</h2>
+
+    <h3>Verify Applicant</h3>
+
+    <div class="terminal">
+<pre>POST /v1/verify
+Content-Type: application/json
+Authorization: Bearer vk_live_YOUR_API_KEY
+
+{
+  "applicant_id": "app_12345",
+  "email": "candidate@example.com",
+  "tier": "L2",
+  "metadata": {
+    "role_id": "senior-engineer",
+    "ats_reference": "greenhouse_app_67890"
+  }
+}
+
+Response (200 OK):
+{
+  "verification_id": "ver_abc123",
+  "status": "verified",
+  "tier": "L2",
+  "checks_passed": ["ip_analysis", "id_verification", "liveness_check", "work_auth"],
+  "confidence_score": 0.98,
+  "timestamp": "2024-03-12T12:00:00Z"
+}</pre>
+    </div>
+
+    <h3>Webhook Payload</h3>
+
+    <div class="terminal">
+<pre>POST https://your-ats.com/webhooks/verifyus
+Content-Type: application/json
+
+{
+  "event": "verification.completed",
+  "applicant_id": "app_12345",
+  "verification_id": "ver_abc123",
+  "status": "verified",
+  "tier": "L2",
+  "confidence_score": 0.98,
+  "checks": {
+    "ip_analysis": "pass",
+    "id_verification": "pass",
+    "liveness_check": "pass",
+    "work_auth": "pass"
+  }
+}</pre>
+    </div>
+
+    <h2>Performance</h2>
+
+    <table class="spec-table">
+        <tr>
+            <th>Metric</th>
+            <th>Target</th>
+            <th>Current (Beta)</th>
+        </tr>
+        <tr>
+            <td>Verification latency (L1)</td>
+            <td>&lt;500ms</td>
+            <td>~300ms</td>
+        </tr>
+        <tr>
+            <td>Verification latency (L2)</td>
+            <td>&lt;3s</td>
+            <td>~2.5s</td>
+        </tr>
+        <tr>
+            <td>Verification latency (L3)</td>
+            <td>&lt;10s</td>
+            <td>~8s</td>
+        </tr>
+        <tr>
+            <td>API uptime</td>
+            <td>99.9%</td>
+            <td>99.7% (beta)</td>
+        </tr>
+        <tr>
+            <td>False positive rate</td>
+            <td>&lt;0.5%</td>
+            <td>~1.2% (beta)</td>
+        </tr>
+    </table>
+
+    <h2>Roadmap</h2>
+
+    <h3>Q2 2026 (Current)</h3>
+    <ul>
+        <li>Beta testing with 5 enterprise partners</li>
+        <li>SOC 2 Type II certification</li>
+        <li>Multi-region deployment (US, EU)</li>
+    </ul>
+
+    <h3>Q3 2026</h3>
+    <ul>
+        <li>Production launch</li>
+        <li>Self-service dashboard</li>
+        <li>Analytics + reporting</li>
+        <li>Zapier integration</li>
+    </ul>
+
+    <h3>Q4 2026</h3>
+    <ul>
+        <li>Mobile SDK (iOS/Android)</li>
+        <li>International ID support (EU, UK, Canada)</li>
+        <li>Advanced fraud ML models</li>
+    </ul>
+
+    <h2>Mobile SDK (iOS)</h2>
+
+    <p><strong>Status:</strong> In Development — Public beta Q4 2026</p>
+
+    <h3>Platform Requirements</h3>
+    <ul>
+        <li><strong>Minimum iOS version:</strong> iOS 14.0+</li>
+        <li><strong>Languages:</strong> Swift 5.5+, Objective-C compatible</li>
+        <li><strong>Dependencies:</strong> No third-party frameworks required</li>
+        <li><strong>Camera access:</strong> Required for liveness detection</li>
+    </ul>
+
+    <h3>Installation (CocoaPods)</h3>
+
+    <div class="terminal">
+<pre># Podfile
+pod 'VerifyUS', '~> 0.9.0'
+
+# Install
+pod install</pre>
+    </div>
+
+    <h3>Installation (Swift Package Manager)</h3>
+
+    <div class="terminal">
+<pre>// Package.swift
+dependencies: [
+    .package(url: "https://github.com/ziggythebot/verifyus-ios.git", from: "0.9.0")
+]</pre>
+    </div>
+
+    <h3>Swift Implementation</h3>
+
+    <div class="terminal">
+<pre>import VerifyUS
+
+// Initialize SDK
+let verifyUS = VerifyUSClient(apiKey: "vk_live_YOUR_API_KEY")
+
+// Trigger verification flow
+verifyUS.verify(
+    applicantID: "app_12345",
+    tier: .standard,
+    presentingViewController: self
+) { result in
+    switch result {
+    case .success(let verification):
+        print("Verified: \(verification.verificationID)")
+        print("Confidence: \(verification.confidenceScore)")
+
+    case .failure(let error):
+        print("Verification failed: \(error.localizedDescription)")
+    }
+}</pre>
+    </div>
+
+    <h3>Objective-C Implementation</h3>
+
+    <div class="terminal">
+<pre>#import &lt;VerifyUS/VerifyUS.h&gt;
+
+// Initialize SDK
+VUSClient *client = [[VUSClient alloc] initWithAPIKey:@"vk_live_YOUR_API_KEY"];
+
+// Trigger verification flow
+[client verifyWithApplicantID:@"app_12345"
+                         tier:VUSTierStandard
+        presentingViewController:self
+                   completion:^(VUSVerification *verification, NSError *error) {
+    if (verification) {
+        NSLog(@"Verified: %@", verification.verificationID);
+    } else {
+        NSLog(@"Error: %@", error.localizedDescription);
+    }
+}];</pre>
+    </div>
+
+    <h3>Features</h3>
+    <ul>
+        <li><strong>Native Camera Integration:</strong> Built-in liveness detection using front-facing camera</li>
+        <li><strong>ID Capture:</strong> Document scanning with automatic edge detection</li>
+        <li><strong>Biometric Verification:</strong> Face matching between selfie and ID photo</li>
+        <li><strong>Offline Queue:</strong> Submissions queued when network unavailable</li>
+        <li><strong>Dark Mode Support:</strong> Automatic theme adaptation</li>
+        <li><strong>Localization:</strong> English, Spanish, French, German (more coming)</li>
+    </ul>
+
+    <h3>UI Customization</h3>
+
+    <div class="terminal">
+<pre>// Customize verification UI
+let config = VUSConfiguration()
+config.primaryColor = UIColor.systemGreen
+config.buttonStyle = .rounded
+config.logoImage = UIImage(named: "company-logo")
+
+verifyUS.configure(config)</pre>
+    </div>
+
+    <h3>Privacy & Permissions</h3>
+
+    <p>Add to <span class="code">Info.plist</span>:</p>
+
+    <div class="terminal">
+<pre>&lt;key&gt;NSCameraUsageDescription&lt;/key&gt;
+&lt;string&gt;Camera access required for identity verification&lt;/string&gt;
+
+&lt;key&gt;NSPhotoLibraryUsageDescription&lt;/key&gt;
+&lt;string&gt;Photo library access for ID upload (optional)&lt;/string&gt;</pre>
+    </div>
+
+    <h3>Beta Access</h3>
+
+    <p>iOS SDK is currently in private beta. Request access: <span class="code">dev@verifyus.com</span></p>
+
+    <h2>Source Code</h2>
+
+    <p>VerifyUS is built on open verification protocols. Core components are open-source:</p>
+
+    <a href="https://github.com/ziggythebot/verifyus" class="github-link" target="_blank">
+        <svg class="github-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        VIEW_SOURCE_ON_GITHUB
+    </a>
+
+    <h2>Support</h2>
+
+    <p>For technical questions, integration support, or bug reports:</p>
+    <ul>
+        <li><strong>Email:</strong> <span class="code">dev@verifyus.com</span></li>
+        <li><strong>Discord:</strong> <span class="code">discord.gg/verifyus</span></li>
+        <li><strong>GitHub Issues:</strong> <span class="code">github.com/ziggythebot/verifyus/issues</span></li>
+    </ul>
+
+</main>
+
+<footer>
+    <div class="container">
+        © 2026 VERIFYUS_SYSTEMS_LLC. // <a href="index.html" style="color: inherit; text-decoration: none;">HOME</a> // BETA_VERSION_0.9.2
+    </div>
+</footer>
+
+</body>
+</html>
